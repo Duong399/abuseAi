@@ -41,7 +41,7 @@
             width: 80%;
             height: 40%;
             border: 2px solid white;
-            background-color: rgba(0, 0, 0, 0.7); /* Làm khung đen mờ */
+            background-color: rgba(0, 0, 0, 0.7);
             border-radius: 10px;
             padding: 20px;
             display: flex;
@@ -84,15 +84,61 @@
             color: #FFD700;
         }
 
+        #aiAnswer {
+            margin-top: 10px;
+            font-size: 24px;
+            color: #32CD32;
+        }
+
         .endingText {
             font-size: 28px;
             color: #FFD700;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: #A9A9A9;
+            margin-top: 10px;
         }
 
         #finalMessage {
             font-size: 48px;
             color: #1E90FF;
             margin-top: 50px;
+        }
+
+        #askAiButton {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #askAiButton:hover {
+            background-color: #0056b3;
+        }
+
+            #playAgainButton {
+        margin-top: 20px;
+        padding: 10px 20px;
+        font-size: 20px;
+        background-color: #92c8e5;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        display: none; /* Initially hidden */
+        position: relative; /* Ensure it can be centrally aligned */
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+        #playAgainButton:hover {
+            background-color: #f8f8f8;
         }
     </style>
 </head>
@@ -113,11 +159,15 @@
                     placeholder="Type your answer" 
                     oninput="handleInput(event)" 
                     onkeydown="checkEnter(event)">
+                <button id="askAiButton" onclick="askAi()" style="display: none;">Ask AI</button>
+                <div id="aiAnswer"></div>
             </div>
         </div>
         <div id="endingContainer" style="display: none;">
             <div class="endingText" id="endingText"></div>
+            <div class="subtitle" id="subtitleText"></div>
             <div id="finalMessage"></div>
+            <button id="playAgainButton" onclick="restartGame()">Play Again</button>
         </div>
     </div>
 
@@ -144,6 +194,16 @@
             "Is convenience worth losing your autonomy?"
         ];
 
+        const ending1PartsVN = [
+            "Bạn đã dựa vào AI để hoàn thành công việc.",
+            "Lúc đầu, mọi thứ dường như hoàn hảo.",
+            "Công việc đã được hoàn thành nhanh chóng và hiệu quả.",
+            "Tuy nhiên, theo thời gian, kỹ năng của bạn bắt đầu mai một.",
+            "Cuối cùng, bạn hoàn toàn phụ thuộc vào AI cho mọi việc.",
+            "Một ngày nọ, AI bị lỗi, để lại bạn bất lực và lạc lối.",
+            "Liệu sự tiện lợi có đáng để mất đi sự tự chủ?"
+        ];
+
         const ending2Parts = [
             "You decided to think and work through the problem yourself.",
             "It was challenging and took a lot of time.",
@@ -154,10 +214,23 @@
             "You realized the value of effort and personal growth."
         ];
 
+        const ending2PartsVN = [
+            "Bạn đã quyết định tự suy nghĩ và giải quyết vấn đề.",
+            "Đó là một thử thách và mất rất nhiều thời gian.",
+            "Đã có những lúc bạn nghi ngờ khả năng của mình.",
+            "Nhưng với sự kiên trì, bạn bắt đầu đạt được tiến bộ.",
+            "Mỗi thành công nhỏ đã xây dựng sự tự tin và kỹ năng của bạn.",
+            "Cuối cùng, bạn đã hoàn thành nhiệm vụ một cách độc lập.",
+            "Bạn nhận ra giá trị của nỗ lực và sự phát triển cá nhân."
+        ];
+
         function chooseOption(option) {
             chosen = option;
             document.getElementById('options').style.display = 'none';
             document.getElementById('quizContainer').style.display = 'block';
+            if (chosen === 1) {
+                document.getElementById('askAiButton').style.display = 'block';
+            }
             showQuestion();
         }
 
@@ -165,6 +238,7 @@
             if (currentQuestionIndex < questions.length) {
                 document.getElementById('questionText').textContent = "Question " + (currentQuestionIndex + 1) + ": " + questions[currentQuestionIndex].question;
                 document.getElementById('answerInput').value = '';
+                document.getElementById('aiAnswer').textContent = '';
             } else {
                 showEnding();
             }
@@ -186,11 +260,9 @@
             const nextIndex = currentQuestionIndex + 1;
 
             if (nextIndex < questions.length) {
-                // Show next question immediately after answer
                 currentQuestionIndex++;
                 showQuestion();
             } else {
-                // End the game and show ending
                 showEnding();
             }
 
@@ -201,22 +273,41 @@
 
         function showEnding() {
             const endingParts = chosen === 1 ? ending1Parts : ending2Parts;
+            const endingPartsVN = chosen === 1 ? ending1PartsVN : ending2PartsVN;
             let i = 0;
             const endingTextContainer = document.getElementById('endingText');
+            const subtitleTextContainer = document.getElementById('subtitleText');
             const finalMessageContainer = document.getElementById('finalMessage');
+            const playAgainButton = document.getElementById('playAgainButton');
 
             document.getElementById('quizContainer').style.display = 'none';
             document.getElementById('endingContainer').style.display = 'block';
+            playAgainButton.style.display = 'none'; // Initially hide the button
 
             const interval = setInterval(() => {
                 if (i < endingParts.length) {
                     endingTextContainer.textContent = endingParts[i];
+                    subtitleTextContainer.textContent = endingPartsVN[i];
                     i++;
                 } else {
                     clearInterval(interval);
                     finalMessageContainer.textContent = "Thanks For Using";
+                    playAgainButton.style.display = 'block'; // Show the "Play Again" button after the last part
                 }
             }, 3000);
+        }
+
+        function askAi() {
+            const correctAnswer = questions[currentQuestionIndex].answer;
+            document.getElementById('aiAnswer').textContent = `The answer of the question is: ${correctAnswer}`;
+        }
+
+        function restartGame() {
+            currentQuestionIndex = 0;
+            chosen = null;
+            document.getElementById('endingContainer').style.display = 'none';
+            document.getElementById('options').style.display = 'block';
+            document.getElementById('finalMessage').textContent = '';
         }
     </script>
 </body>
