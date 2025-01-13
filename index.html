@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lạm dụng AI</title>
+    <title>Quiz & Choice Game</title>
     <style>
         * {
             margin: 0;
@@ -25,12 +25,41 @@
 
         #gameContainer {
             width: 800px;
-            height: 600px;
+            height: 700px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             position: relative;
+        }
+
+        #titleText {
+            font-size: 48px;
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        .inputBox {
+            background-color: white;
+            color: #FFD700;
+            font-size: 24px;
+            width: 300px;
+            height: 50px;
+            margin: 10px auto;
+            padding: 10px;
+            border: 2px solid #000;
+            text-align: center;
+        }
+
+        .option {
+            font-size: 36px;
+            margin: 20px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .option:hover {
+            transform: scale(1.1);
         }
 
         #questionFrame {
@@ -48,35 +77,6 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-        }
-
-        #titleText {
-            font-size: 48px;
-            color: #fff;
-            margin-bottom: 20px;
-        }
-
-        .option {
-            font-size: 36px;
-            margin: 20px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .option:hover {
-            transform: scale(1.1);
-        }
-
-        .inputBox {
-            background-color: white;
-            color: #FFD700;
-            font-size: 24px;
-            width: 300px;
-            height: 50px;
-            margin: 10px auto;
-            padding: 10px;
-            border: 2px solid #000;
-            text-align: center;
         }
 
         #questionText {
@@ -103,7 +103,7 @@
 
         #finalMessage {
             font-size: 48px;
-            color: #1E90FF;
+            color: #f0f2f4;
             margin-top: 50px;
         }
 
@@ -122,33 +122,116 @@
             background-color: #0056b3;
         }
 
-            #playAgainButton {
-        margin-top: 20px;
-        padding: 10px 20px;
-        font-size: 20px;
-        background-color: #92c8e5;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        display: none; /* Initially hidden */
-        position: relative; /* Ensure it can be centrally aligned */
-        left: 50%;
-        transform: translateX(-50%);
-    }
+        #playAgainButton {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 20px;
+            background-color: #92c8e5;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: none;
+            position: relative;
+            left: 50%;
+            transform: translateX(-50%);
+        }
 
         #playAgainButton:hover {
             background-color: #f8f8f8;
+        }
+
+        /* Leaderboard button */
+        #leaderboardButton {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            font-size: 20px;
+            background: linear-gradient(to right, #74c3e5, #000000);
+            color: white;
+            border: 4px solid transparent; /* Tạo viền trong suốt */
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1000;
+            background-clip: padding-box; /* Đảm bảo màu nền không ảnh hưởng đến viền */
+            animation: rainbow-border 3s infinite; /* Áp dụng hiệu ứng đổi màu viền */
+        }
+
+        #leaderboardButton:hover {
+            background-color: #0056b3;
+        }
+
+        #leaderboardContainer {
+            display: none;
+            position: absolute;
+            top: 50px;
+            left: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            width: 70%;
+            color: #f4f3ee;
+            max-height: 400px; /* Giới hạn chiều cao tối đa của bảng */
+            overflow-y: auto; /* Thêm thanh cuộn dọc khi vượt quá max-height */
+        }
+
+        #leaderboardText {
+            font-size: 30px;
+            margin-bottom: 20px;
+        }
+
+        .leaderboardEntry {
+            font-size: 20px;
+            margin: 5px 0;
+        }
+
+        .leaderboardEntry span {
+            margin-left: 10px;
+            font-weight: bold;
+            color: #1E90FF;
+        }
+
+        /* New styles for feedback */
+        #feedback {
+            font-size: 20px;
+            color: #FFD700;
+            margin-top: 10px;
+        }
+
+        #feedbackCorrect {
+            color: #32CD32;
+        }
+
+        #feedbackIncorrect {
+            color: #FF6347;
         }
     </style>
 </head>
 <body>
     <div id="gameContainer">
         <div id="titleText">Make Your Choice</div>
-        <div id="options">
+
+        <!-- Leaderboard button -->
+        <button id="leaderboardButton" onclick="toggleLeaderboard()">Leaderboard</button>
+
+        <!-- Leaderboard display -->
+        <div id="leaderboardContainer">
+            <div id="leaderboardText">Leaderboard</div>
+            <!-- Leaderboard entries will go here -->
+        </div>
+
+        <div id="userInfo" style="display: block;">
+            <input type="text" id="playerName" class="inputBox" placeholder="Enter your name" />
+            <input type="text" id="playerClass" class="inputBox" placeholder="Enter your class" />
+            <button onclick="startGame()" id="startButton" style="padding: 10px 20px; font-size: 20px; background-color: #007BFF; color: white; border: none; border-radius: 5px; cursor: pointer;">Start Game</button>
+        </div>
+        
+        <div id="options" style="display: none;">
             <div class="option" onclick="chooseOption(1)">1. Use AI</div>
             <div class="option" onclick="chooseOption(2)">2. Think for Yourself</div>
         </div>
+
         <div id="quizContainer" style="display: none;">
             <div id="questionFrame">
                 <div id="questionText"></div>
@@ -161,8 +244,10 @@
                     onkeydown="checkEnter(event)">
                 <button id="askAiButton" onclick="askAi()" style="display: none;">Ask AI</button>
                 <div id="aiAnswer"></div>
+                <div id="feedback"></div> <!-- Feedback message will be displayed here -->
             </div>
         </div>
+
         <div id="endingContainer" style="display: none;">
             <div class="endingText" id="endingText"></div>
             <div class="subtitle" id="subtitleText"></div>
@@ -183,6 +268,10 @@
         let currentQuestionIndex = 0;
         let chosen = null;
         let userAnswer = "";
+        let playerName = "";
+        let playerClass = "";
+        let score = 0;
+        const leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
 
         const ending1Parts = [
             "You relied on AI to handle the task.",
@@ -193,7 +282,6 @@
             "One day, the AI failed, leaving you helpless and lost.",
             "Is convenience worth losing your autonomy?"
         ];
-
         const ending1PartsVN = [
             "Bạn đã dựa vào AI để hoàn thành công việc.",
             "Lúc đầu, mọi thứ dường như hoàn hảo.",
@@ -203,7 +291,6 @@
             "Một ngày nọ, AI bị lỗi, để lại bạn bất lực và lạc lối.",
             "Liệu sự tiện lợi có đáng để mất đi sự tự chủ?"
         ];
-
         const ending2Parts = [
             "You decided to think and work through the problem yourself.",
             "It was challenging and took a lot of time.",
@@ -213,7 +300,6 @@
             "Eventually, you completed the task on your own.",
             "You realized the value of effort and personal growth."
         ];
-
         const ending2PartsVN = [
             "Bạn đã quyết định tự suy nghĩ và giải quyết vấn đề.",
             "Đó là một thử thách và mất rất nhiều thời gian.",
@@ -223,6 +309,21 @@
             "Cuối cùng, bạn đã hoàn thành nhiệm vụ một cách độc lập.",
             "Bạn nhận ra giá trị của nỗ lực và sự phát triển cá nhân."
         ];
+        // Update the leaderboard when the page loads
+        updateLeaderboard();
+
+        function startGame() {
+            playerName = document.getElementById('playerName').value;
+            playerClass = document.getElementById('playerClass').value;
+
+            if (playerName && playerClass) {
+                document.getElementById('userInfo').style.display = 'none';
+                document.getElementById('options').style.display = 'block';
+                updateLeaderboard();
+            } else {
+                alert('Please enter both your name and class!');
+            }
+        }
 
         function chooseOption(option) {
             chosen = option;
@@ -239,6 +340,7 @@
                 document.getElementById('questionText').textContent = "Question " + (currentQuestionIndex + 1) + ": " + questions[currentQuestionIndex].question;
                 document.getElementById('answerInput').value = '';
                 document.getElementById('aiAnswer').textContent = '';
+                document.getElementById('feedback').textContent = ''; // Reset feedback
             } else {
                 showEnding();
             }
@@ -259,55 +361,81 @@
             const isCorrect = userAnswer.trim().toLowerCase() === correctAnswer.toLowerCase();
             const nextIndex = currentQuestionIndex + 1;
 
-            if (nextIndex < questions.length) {
-                currentQuestionIndex++;
-                showQuestion();
+            if (isCorrect) {
+                score += 10; // Add points for correct answer
+                document.getElementById('feedback').textContent = "Correct answer!";
+                document.getElementById('feedback').className = "feedbackCorrect"; // Feedback for correct
             } else {
-                showEnding();
+                document.getElementById('feedback').textContent = `Incorrect answer. The answer's ${correctAnswer}`;
+                document.getElementById('feedback').className = "feedbackIncorrect"; // Feedback for incorrect
             }
 
-            if (!isCorrect) {
-                alert("Wrong! The correct answer was: " + correctAnswer);
+            if (nextIndex < questions.length) {
+                currentQuestionIndex++;
+                setTimeout(showQuestion, 2000); // Delay to show the next question
+            } else {
+                setTimeout(showEnding, 2000); // Delay to show the ending
             }
         }
 
-        function showEnding() {
-            const endingParts = chosen === 1 ? ending1Parts : ending2Parts;
-            const endingPartsVN = chosen === 1 ? ending1PartsVN : ending2PartsVN;
-            let i = 0;
-            const endingTextContainer = document.getElementById('endingText');
-            const subtitleTextContainer = document.getElementById('subtitleText');
-            const finalMessageContainer = document.getElementById('finalMessage');
-            const playAgainButton = document.getElementById('playAgainButton');
+        function askAi() {
+            const aiResponse = "The AI suggests: " + questions[currentQuestionIndex].answer;
+            document.getElementById('aiAnswer').textContent = aiResponse;
+        }
 
+        function showEnding() {
             document.getElementById('quizContainer').style.display = 'none';
             document.getElementById('endingContainer').style.display = 'block';
-            playAgainButton.style.display = 'none'; // Initially hide the button
+            
+            if (chosen === 1) {
+                displayEnding(ending1Parts, ending1PartsVN);
+            } else {
+                displayEnding(ending2Parts, ending2PartsVN);
+            }
+        }
 
-            const interval = setInterval(() => {
-                if (i < endingParts.length) {
-                    endingTextContainer.textContent = endingParts[i];
-                    subtitleTextContainer.textContent = endingPartsVN[i];
-                    i++;
-                } else {
+        function displayEnding(endingParts, endingPartsVN) {
+            let i = 0;
+            let interval = setInterval(() => {
+                // Hiển thị câu kết thúc bằng tiếng Anh
+                document.getElementById('endingText').textContent = endingParts[i];
+                // Hiển thị phụ đề bằng tiếng Việt
+                document.getElementById('subtitleText').textContent = endingPartsVN[i];
+                
+                if (++i === endingParts.length) {
                     clearInterval(interval);
-                    finalMessageContainer.textContent = "Thanks For Using";
-                    playAgainButton.style.display = 'block'; // Show the "Play Again" button after the last part
+                    document.getElementById('finalMessage').textContent = `Thanks for play! Your Score: ${score}`;
+                    saveLeaderboard();
                 }
             }, 3000);
         }
 
-        function askAi() {
-            const correctAnswer = questions[currentQuestionIndex].answer;
-            document.getElementById('aiAnswer').textContent = `The answer of the question is: ${correctAnswer}`;
+        function saveLeaderboard() {
+            leaderboard.push({name: playerName, class: playerClass, score: score});
+            // Sắp xếp leaderboard theo điểm từ cao đến thấp
+            leaderboard.sort((a, b) => b.score - a.score);
+            localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+            updateLeaderboard();
+            document.getElementById('playAgainButton').style.display = 'block';
+        }
+
+        function updateLeaderboard() {
+            const leaderboardEntries = leaderboard.map(entry => {
+                return `<div class="leaderboardEntry">${entry.name} - ${entry.class}: ${entry.score}</div>`;
+            }).join('');
+            document.getElementById('leaderboardContainer').innerHTML = `
+                <div id="leaderboardText">Leaderboard</div>
+                ${leaderboardEntries}
+            `;
+        }
+
+        function toggleLeaderboard() {
+            const leaderboardContainer = document.getElementById('leaderboardContainer');
+            leaderboardContainer.style.display = leaderboardContainer.style.display === 'none' ? 'block' : 'none';
         }
 
         function restartGame() {
-            currentQuestionIndex = 0;
-            chosen = null;
-            document.getElementById('endingContainer').style.display = 'none';
-            document.getElementById('options').style.display = 'block';
-            document.getElementById('finalMessage').textContent = '';
+            location.reload();
         }
     </script>
 </body>
