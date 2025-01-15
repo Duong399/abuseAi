@@ -389,49 +389,30 @@
         const correctAnswer = questions[currentQuestionIndex].answer.toLowerCase();
         const userAnswerLower = userAnswer.trim().toLowerCase();
 
-        // Chia câu trả lời đúng và câu trả lời của người chơi thành các từ
-        const correctAnswerWords = correctAnswer.split(/\s+/);
-        const userAnswerWords = userAnswerLower.split(/\s+/);
+        // Tách câu trả lời chính xác thành các từ
+        const correctWords = correctAnswer.split(" ");
+        const userWords = userAnswerLower.split(" ");
 
-        // Đếm số từ trùng khớp
-        const matchingWords = userAnswerWords.filter(word => correctAnswerWords.includes(word)).length;
+        // Kiểm tra khớp từ hoặc chuỗi con
+        const isCorrect = correctWords.some(word => 
+            userWords.some(userWord => word.includes(userWord) || userWord.includes(word))
+        );
 
-        // Tính tỷ lệ trùng khớp
-        const matchPercentage = (matchingWords / correctAnswerWords.length) * 100;
-
-        // Bắt đầu xử lý câu trả lời, vô hiệu hóa nút Enter
-        isProcessingAnswer = true;
-
-        // Nếu tỷ lệ khớp 100%, câu trả lời là đúng
-        if (matchPercentage === 100) {
-            score += 10; // Add points for correct answer
-            document.getElementById('feedback').textContent = "Correct answer!";
-            document.getElementById('feedback').className = "feedbackCorrect"; // Feedback for correct
-        } else if (matchPercentage >= 50 && matchPercentage < 100) {
-            // Nếu tỷ lệ khớp từ 50% đến dưới 100%, câu trả lời được chấp nhận là đúng một phần
-            score += 10; // Add fewer points for partially correct answer
-            document.getElementById('feedback').textContent = `Correct answer!`;
-            document.getElementById('feedback').className = "feedbackCorrect"; // Feedback for partial correct
+        if (isCorrect) {
+            alert("Correct! Well done.");
+            score += 10;
         } else {
-            // Nếu câu trả lời sai
-            document.getElementById('feedback').textContent = `Incorrect answer. The answer's ${correctAnswer}`;
-            document.getElementById('feedback').className = "feedbackIncorrect"; // Feedback for incorrect
+            alert(`Wrong! The correct answer was: ${correctAnswer}`);
         }
 
-        // Chờ một thời gian trước khi chuyển sang câu hỏi tiếp theo
         const nextIndex = currentQuestionIndex + 1;
 
         if (nextIndex < questions.length) {
-            setTimeout(function () {
-                currentQuestionIndex++;
-                showQuestion(); // Hiển thị câu hỏi tiếp theo
-                isProcessingAnswer = false; // Kích hoạt lại sự kiện Enter sau khi hiển thị câu hỏi tiếp theo
-            }, 2000); // Delay 2 giây trước khi chuyển sang câu hỏi tiếp theo
+            currentQuestionIndex++;
+            showQuestion();
         } else {
-            setTimeout(function () {
-                showEnding();
-                isProcessingAnswer = false; // Kích hoạt lại sự kiện Enter sau khi kết thúc game
-            }, 2000); // Delay 2 giây trước khi hiển thị phần kết thúc
+            showEnding();
+            isProcessingAnswer = false;
         }
     }
 
