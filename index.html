@@ -206,6 +206,27 @@
         #feedbackIncorrect {
             color: #FF6347;
         }
+        #spinWheelButton {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 20px;
+            background-color: #FFD700;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: none; /* Ẩn nút Spin Wheel khi chưa kết thúc game */
+            position: relative;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #spinWheelButton:hover {
+            background-color: #FFB800;
+        }
+        #endingContainer button {
+            margin-right: 10px; /* Khoảng cách giữa các nút */
+        }
     </style>
 </head>
 <body>
@@ -253,16 +274,20 @@
             <div class="subtitle" id="subtitleText"></div>
             <div id="finalMessage"></div>
             <button id="playAgainButton" onclick="restartGame()">Play Again</button>
+            <button id="spinWheelButton" onclick="spinWheel()">Spin Wheel</button>
         </div>
     </div>
 
     <script>
         const questions = [
-            {question: "What is the longest river in the world?", answer: "Nile"},
-            {question: "Who invented the light bulb?", answer: "Thomas Edison"},
-            {question: "What element has the symbol O?", answer: "Oxygen"},
-            {question: "What is the capital of Japan?", answer: "Tokyo"},
-            {question: "What bird cannot fly?", answer: "Penguin"}
+            {question: "Argentina thuộc châu lục nào?", answer: "Nam mỹ"},
+            {question: "Nưóc nào đông dân nhất thế giới?", answer: "Ấn Độ"},
+            {question: "Nước nào nhiều kim tự tháp nhất?", answer: "Sudan"},
+            {question: "1 dollar bằng bao nhiêu vnd?", answer: "25,386"},
+            {question: "Ngày sinh của Chủ Tịch Hồ Chí Minh?", answer: "19/5/1890"},
+            {question: "Hiệp định Genève được ký vào năm nào", answer: "1954"},
+            {question: "Nêu định nghĩa vector", answer: "Vector là một đoạn thẳng có hướng"},
+            {question: "(câu đố mẹo) Hãy chứng minh 4 : 3 = 2 ", answer: "tứ chia tam => tám chia tư = 2"},
         ];
 
         let currentQuestionIndex = 0;
@@ -346,37 +371,70 @@
             }
         }
 
-        function handleInput(event) {
-            userAnswer = event.target.value;
-        }
+        let isProcessingAnswer = false; // Thêm biến để kiểm tra việc đang xử lý câu trả lời
 
         function checkEnter(event) {
+            // Nếu đang xử lý câu trả lời, vô hiệu hóa sự kiện nhấn Enter
+            if (isProcessingAnswer) {
+                event.preventDefault();
+                return;
+            }
+
             if (event.key === "Enter") {
                 submitAnswer();
             }
         }
 
         function submitAnswer() {
-            const correctAnswer = questions[currentQuestionIndex].answer;
-            const isCorrect = userAnswer.trim().toLowerCase() === correctAnswer.toLowerCase();
-            const nextIndex = currentQuestionIndex + 1;
+        const correctAnswer = questions[currentQuestionIndex].answer.toLowerCase();
+        const userAnswerLower = userAnswer.trim().toLowerCase();
 
-            if (isCorrect) {
-                score += 10; // Add points for correct answer
-                document.getElementById('feedback').textContent = "Correct answer!";
-                document.getElementById('feedback').className = "feedbackCorrect"; // Feedback for correct
-            } else {
-                document.getElementById('feedback').textContent = `Incorrect answer. The answer's ${correctAnswer}`;
-                document.getElementById('feedback').className = "feedbackIncorrect"; // Feedback for incorrect
-            }
+        // Chia câu trả lời đúng và câu trả lời của người chơi thành các từ
+        const correctAnswerWords = correctAnswer.split(/\s+/);
+        const userAnswerWords = userAnswerLower.split(/\s+/);
 
-            if (nextIndex < questions.length) {
-                currentQuestionIndex++;
-                setTimeout(showQuestion, 2000); // Delay to show the next question
-            } else {
-                setTimeout(showEnding, 2000); // Delay to show the ending
-            }
+        // Đếm số từ trùng khớp
+        const matchingWords = userAnswerWords.filter(word => correctAnswerWords.includes(word)).length;
+
+        // Tính tỷ lệ trùng khớp
+        const matchPercentage = (matchingWords / correctAnswerWords.length) * 100;
+
+        // Bắt đầu xử lý câu trả lời, vô hiệu hóa nút Enter
+        isProcessingAnswer = true;
+
+        // Nếu tỷ lệ khớp 100%, câu trả lời là đúng
+        if (matchPercentage === 100) {
+            score += 10; // Add points for correct answer
+            document.getElementById('feedback').textContent = "Correct answer!";
+            document.getElementById('feedback').className = "feedbackCorrect"; // Feedback for correct
+        } else if (matchPercentage >= 50 && matchPercentage < 100) {
+            // Nếu tỷ lệ khớp từ 50% đến dưới 100%, câu trả lời được chấp nhận là đúng một phần
+            score += 10; // Add fewer points for partially correct answer
+            document.getElementById('feedback').textContent = `Correct answer!`;
+            document.getElementById('feedback').className = "feedbackCorrect"; // Feedback for partial correct
+        } else {
+            // Nếu câu trả lời sai
+            document.getElementById('feedback').textContent = `Incorrect answer. The answer's ${correctAnswer}`;
+            document.getElementById('feedback').className = "feedbackIncorrect"; // Feedback for incorrect
         }
+
+        // Chờ một thời gian trước khi chuyển sang câu hỏi tiếp theo
+        const nextIndex = currentQuestionIndex + 1;
+
+        if (nextIndex < questions.length) {
+            setTimeout(function () {
+                currentQuestionIndex++;
+                showQuestion(); // Hiển thị câu hỏi tiếp theo
+                isProcessingAnswer = false; // Kích hoạt lại sự kiện Enter sau khi hiển thị câu hỏi tiếp theo
+            }, 2000); // Delay 2 giây trước khi chuyển sang câu hỏi tiếp theo
+        } else {
+            setTimeout(function () {
+                showEnding();
+                isProcessingAnswer = false; // Kích hoạt lại sự kiện Enter sau khi kết thúc game
+            }, 2000); // Delay 2 giây trước khi hiển thị phần kết thúc
+        }
+    }
+
 
         function askAi() {
             const aiResponse = "The AI suggests: " + questions[currentQuestionIndex].answer;
@@ -404,8 +462,13 @@
                 
                 if (++i === endingParts.length) {
                     clearInterval(interval);
-                    document.getElementById('finalMessage').textContent = `Thanks for play! Your Score: ${score}`;
+                    if (score <=40){
+                    document.getElementById('finalMessage').textContent = `You can do it, you're almost there! Your Score: ${score}`;
+                    } else {
+                    document.getElementById('finalMessage').textContent = `Congratulations you got one spin! Your Score: ${score}`;
+                    }
                     saveLeaderboard();
+                    
                 }
             }, 3000);
         }
@@ -417,6 +480,9 @@
             localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
             updateLeaderboard();
             document.getElementById('playAgainButton').style.display = 'block';
+            if (score >= 40) {
+            document.getElementById('spinWheelButton').style.display = 'inline-block'; // Hiển thị nút Spin Wheel
+            }
         }
 
         function updateLeaderboard() {
@@ -427,6 +493,10 @@
                 <div id="leaderboardText">Leaderboard</div>
                 ${leaderboardEntries}
             `;
+        }
+        function spinWheel() {
+            // Chuyển hướng đến trang web vòng quay
+            window.location.href = "https://wheelofnames.com/4dk-bqd";
         }
 
         function toggleLeaderboard() {
